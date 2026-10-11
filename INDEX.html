@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Java To-Do List</title>
+</head>
+
+<body>
+
+    <h1>My To-Do List</h1>
+
+    <form id="todoForm">
+        <input type="text" id="task" placeholder="Enter task" required>
+        <button type="submit">Add Task</button>
+    </form>
+
+    <h2>My Tasks</h2>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        const form = document.getElementById("todoForm");
+        const input = document.getElementById("task");
+        const list = document.getElementById("taskList");
+
+        async function loadTasks() {
+            const response = await fetch("/tasks");
+            const tasks = await response.json();
+
+            list.innerHTML = "";
+
+            tasks.forEach(task => {
+                const li = document.createElement("li");
+                li.textContent = task + " ";
+
+                const button = document.createElement("button");
+                button.textContent = "Delete";
+
+                button.onclick = async () => {
+                    await fetch("/delete?task=" + encodeURIComponent(task), {
+                        method: "POST"
+                    });
+                    loadTasks();
+                };
+
+                li.appendChild(button);
+                list.appendChild(li);
+            });
+        }
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const task = input.value.trim();
+
+            if (task !== "") {
+                await fetch("/add?task=" + encodeURIComponent(task), {
+                    method: "POST"
+                });
+
+                input.value = "";
+                loadTasks();
+            }
+        });
+
+        loadTasks();
+    </script>
+
+</body>
+</html>
